@@ -1,0 +1,34 @@
+<div class="container section">
+  <div class="section-head">
+    <h2><%= q ? `ຜົນການຄົ້ນຫາ: "${q}"` : 'ສິນຄ້າທັງໝົດ' %></h2>
+    <form method="GET" action="/products" style="display:flex;gap:8px;align-items:center;">
+      <% if (q) { %><input type="hidden" name="q" value="<%= q %>"><% } %>
+      <% if (activeCategory) { %><input type="hidden" name="category" value="<%= activeCategory %>"><% } %>
+      <label style="font-size:14px;">ລຽງລຳດັບ:</label>
+      <select name="sort" onchange="this.form.submit()">
+        <option value="" <%= sort==='' ? 'selected' : '' %>>ໃໝ່ສຸດ</option>
+        <option value="price_asc" <%= sort==='price_asc' ? 'selected' : '' %>>ລາຄາ: ຕ່ຳ → ສູງ</option>
+        <option value="price_desc" <%= sort==='price_desc' ? 'selected' : '' %>>ລາຄາ: ສູງ → ຕ່ຳ</option>
+        <option value="bestseller" <%= sort==='bestseller' ? 'selected' : '' %>>ຂາຍດີສຸດ</option>
+      </select>
+    </form>
+  </div>
+
+  <div class="product-grid">
+    <% products.forEach(p => { %>
+      <%- include('../partials/product-card', { p }) %>
+    <% }) %>
+  </div>
+  <% if (products.length === 0) { %>
+    <div class="empty-state">ບໍ່ພົບສິນຄ້າ ລອງຄົ້ນຫາຄຳອື່ນເບິ່ງ</div>
+  <% } %>
+
+  <% if (totalPages > 1) { %>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:30px;">
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <a class="btn <%= i === page ? '' : 'btn-outline' %> btn-sm"
+           href="?q=<%= q %>&category=<%= activeCategory %>&sort=<%= sort %>&page=<%= i %>"><%= i %></a>
+      <% } %>
+    </div>
+  <% } %>
+</div>

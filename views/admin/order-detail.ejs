@@ -1,0 +1,75 @@
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <div class="admin-main">
+    <a href="/admin/orders" style="font-size:14px;">← ກັບໄປລາຍການອໍເດີ</a>
+    <div class="section-head" style="margin-top:10px;">
+      <h1>ບິນອໍເດີ #<%= order.order_no %></h1>
+      <span class="badge badge-<%= order.status %>"><%= order.status %></span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:28px;">
+      <div>
+        <h3>📦 ລາຍການສິນຄ້າ (ສຳລັບຈັດຂອງ)</h3>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>ສິນຄ້າ</th><th>ຈຳນວນ</th><th>ລາຄາ/ໜ່ວຍ</th><th>ລວມ</th></tr></thead>
+            <tbody>
+              <% order.order_items.forEach(item => { %>
+                <tr>
+                  <td><%= item.product_name %></td>
+                  <td><strong><%= item.quantity %></strong></td>
+                  <td>₭<%= Number(item.unit_price).toLocaleString() %></td>
+                  <td>₭<%= Number(item.line_total).toLocaleString() %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:24px;">🚚 ທີ່ຢູ່ຈັດສົ່ງ</h3>
+        <p>
+          <strong><%= order.shipping_address.receiver_name %></strong> · <%= order.shipping_address.phone %><br>
+          <%= [order.shipping_address.village, order.shipping_address.district, order.shipping_address.province].filter(Boolean).join(', ') %>
+          <% if (order.shipping_address.detail) { %><br><%= order.shipping_address.detail %><% } %>
+        </p>
+
+        <% if (order.note) { %>
+          <h3 style="margin-top:24px;">📝 ໝາຍເຫດຈາກລູກຄ້າ</h3>
+          <p style="background:var(--sage);padding:12px 16px;border-radius:8px;"><%= order.note %></p>
+        <% } %>
+
+        <% if (order.shipping_proof_url) { %>
+          <h3 style="margin-top:24px;">📎 ບິນຝາກເຄື່ອງທີ່ແນບໄວ້</h3>
+          <a href="<%= order.shipping_proof_url %>" target="_blank">
+            <img src="<%= order.shipping_proof_url %>" style="max-width:280px;border-radius:var(--radius);border:1px solid var(--line);">
+          </a>
+        <% } %>
+      </div>
+
+      <div>
+        <div class="cart-summary" style="margin-left:0;max-width:none;">
+          <div class="row"><span>ລູກຄ້າ</span><span><%= order.profiles?.full_name || '-' %></span></div>
+          <div class="row"><span>ເບີໂທ</span><span><%= order.profiles?.phone || order.shipping_address.phone %></span></div>
+          <div class="row"><span>ວິທີຊຳລະ</span><span><%= order.payment_method === 'cod' ? 'COD' : 'ໂອນ' %></span></div>
+          <hr style="border-color:var(--line);">
+          <div class="row"><span>ລວມຍ່ອຍ</span><span>₭<%= Number(order.subtotal).toLocaleString() %></span></div>
+          <div class="row"><span>ຄ່າສົ່ງ</span><span>₭<%= Number(order.shipping_fee).toLocaleString() %></span></div>
+          <div class="row total"><span>ລວມທັງໝົດ</span><span>₭<%= Number(order.total).toLocaleString() %></span></div>
+        </div>
+
+        <h3 style="margin-top:24px;">ອັບເດດສະຖານະ / ແນບບິນຝາກເຄື່ອງ</h3>
+        <form action="/admin/orders/<%= order.id %>/status" method="POST" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:10px;">
+          <select name="status">
+            <% ['pending','paid','processing','shipped','delivered','cancelled','refunded'].forEach(s => { %>
+              <option value="<%= s %>" <%= order.status === s ? 'selected' : '' %>><%= s %></option>
+            <% }) %>
+          </select>
+          <input type="text" name="tracking_number" placeholder="ເລກ tracking (ຖ້າມີ)" value="<%= order.tracking_number || '' %>">
+          <label class="product-meta">📎 ແນບບິນຝາກເຄື່ອງ (ຮູບ)</label>
+          <input type="file" name="shipping_proof" accept="image/*">
+          <button type="submit" class="btn btn-gold">ບັນທຶກ</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

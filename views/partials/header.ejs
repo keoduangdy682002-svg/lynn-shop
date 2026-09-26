@@ -1,0 +1,37 @@
+<header class="site-header">
+  <div class="header-top">
+    <a href="/" class="logo">Lynn<span>.</span></a>
+
+    <form class="search-form" action="/products" method="GET">
+      <input type="text" name="q" placeholder="ຄົ້ນຫາສິນຄ້າ..." value="<%= typeof q !== 'undefined' ? q : '' %>">
+      <button type="submit">🔍</button>
+    </form>
+
+    <div class="header-actions">
+      <% if (user) { %>
+        <a href="/orders">📦 ອໍເດີຂອງຂ້ອຍ</a>
+        <% if (user.role === 'admin') { %><a href="/admin">⚙️ ຈັດການລະບົບ</a><% } %>
+        <span>ສະບາຍດີ, <%= user.full_name || user.email %></span>
+        <form action="/auth/logout" method="POST" style="display:inline">
+          <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;font-size:14px;">ອອກລະບົບ</button>
+        </form>
+      <% } else { %>
+        <a href="/auth/login">ເຂົ້າສູ່ລະບົບ</a>
+        <a href="/auth/register">ສະໝັກສະມາຊິກ</a>
+      <% } %>
+      <a href="/cart">🛒 ກະຕ່າ<span class="cart-badge" id="cartBadge"><%= cartCount %></span></a>
+    </div>
+  </div>
+
+  <nav class="category-nav">
+    <div class="container">
+      <a href="/products">ສິນຄ້າທັງໝົດ</a>
+      <a href="/products?sort=bestseller">ຂາຍດີ</a>
+      <a href="/products?sort=price_asc">ລາຄາຖືກສຸດ</a>
+      <a href="/products?category=fashion">ແຟຊັ່ນ</a>
+      <a href="/products?category=electronics">ເຄື່ອງໃຊ້ໄຟຟ້າ</a>
+      <a href="/products?category=home">ເຄື່ອງໃຊ້ໃນເຮືອນ</a>
+      <a href="/products?category=beauty">ຄວາມງາມ</a>
+    </div>
+  </nav>
+</header>

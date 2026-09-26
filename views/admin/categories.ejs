@@ -1,0 +1,36 @@
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <div class="admin-main">
+    <h1>ຈັດການໝວດໝູ່</h1>
+
+    <form action="/admin/categories/new" method="POST" enctype="multipart/form-data"
+          style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;align-items:end;">
+      <div class="form-group" style="margin:0;"><label>ຊື່ໝວດໝູ່</label><input name="name" required></div>
+      <div class="form-group" style="margin:0;"><label>Slug</label><input name="slug" placeholder="e.g. fashion" required></div>
+      <div class="form-group" style="margin:0;"><label>ຮູບ (ອັບໂຫລດ)</label><input type="file" name="image_file" accept="image/*"></div>
+      <div class="form-group" style="margin:0;"><label>ຫລື ລິ້ງຮູບ</label><input name="image_url" placeholder="https://..."></div>
+      <button type="submit" class="btn btn-gold">ເພີ່ມ</button>
+    </form>
+
+    <div style="overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>ຮູບ</th><th>ຊື່</th><th>Slug</th><th></th></tr></thead>
+      <tbody>
+        <% categories.forEach(c => { %>
+          <tr>
+            <td><% if (c.image_url) { %><img src="<%= c.image_url %>" style="width:36px;height:36px;object-fit:cover;border-radius:50%;"><% } %></td>
+            <td><%= c.name %></td>
+            <td><%= c.slug %></td>
+            <td style="white-space:nowrap;">
+              <a href="/admin/categories/<%= c.id %>/edit" class="btn btn-outline btn-sm">ແກ້ໄຂ</a>
+              <form action="/admin/categories/<%= c.id %>/delete" method="POST" onsubmit="return confirm('ລຶບໝວດໝູ່ນີ້?')" style="display:inline;">
+                <button type="submit" class="btn btn-outline btn-sm">ລຶບ</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>

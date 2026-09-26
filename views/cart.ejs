@@ -1,0 +1,52 @@
+<div class="container section">
+  <h1>ກະຕ່າສິນຄ້າ</h1>
+
+  <% if (items.length === 0) { %>
+    <div class="empty-state">
+      ກະຕ່າຂອງທ່ານຍັງວ່າງ 🛒<br><br>
+      <a href="/products" class="btn btn-gold">ໄປຊື້ເຄື່ອງ</a>
+    </div>
+  <% } else { %>
+    <div class="table-scroll">
+    <table class="cart-table">
+      <thead>
+        <tr><th>ສິນຄ້າ</th><th>ລາຄາ</th><th>ຈຳນວນ</th><th>ລວມ</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% items.forEach(i => { %>
+          <% const price = Number(i.products.price) + Number(i.product_variants?.extra_price || 0); %>
+          <tr>
+            <td>
+              <div class="cart-item-name">
+                <img src="https://placehold.co/60x60" alt="">
+                <div>
+                  <div><%= i.products.name %></div>
+                  <% if (i.product_variants) { %><div class="product-meta"><%= i.product_variants.name %></div><% } %>
+                </div>
+              </div>
+            </td>
+            <td>₭<%= price.toLocaleString() %></td>
+            <td>
+              <form action="/cart/update/<%= i.id %>" method="POST" style="display:flex;gap:6px;">
+                <input type="number" name="quantity" value="<%= i.quantity %>" min="0" style="width:60px;" onchange="this.form.submit()">
+              </form>
+            </td>
+            <td>₭<%= (price * i.quantity).toLocaleString() %></td>
+            <td>
+              <form action="/cart/remove/<%= i.id %>" method="POST">
+                <button type="submit" class="btn btn-outline btn-sm">ລຶບ</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="cart-summary">
+      <div class="row"><span>ລວມຍ່ອຍ</span><span>₭<%= total.toLocaleString() %></span></div>
+      <div class="row total"><span>ລວມທັງໝົດ</span><span>₭<%= total.toLocaleString() %></span></div>
+      <a href="/orders/checkout" class="btn btn-gold btn-block">ໄປຈ່າຍເງິນ</a>
+    </div>
+  <% } %>
+</div>

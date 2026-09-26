@@ -1,0 +1,55 @@
+<section class="hero">
+  <div class="container hero-inner">
+    <div>
+      <h1>ຊື້ສະບາຍ ຄືກັນຢູ່ບ້ານ 🌿</h1>
+      <p>ສິນຄ້າຫລາກຫລາຍ ຄັດສັນຢ່າງດີ ຈັດສົ່ງໄວທົ່ວປະເທດ ພ້ອມລາຄາທີ່ຄຸ້ມຄ່າ ສຳລັບທຸກຄົນໃນຄອບຄົວ.</p>
+      <a href="/products" class="btn btn-gold">ເລີ່ມຊື້ເລີຍ</a>
+    </div>
+    <div class="hero-img">
+      <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80" alt="Lynn shop">
+    </div>
+  </div>
+</section>
+
+<section class="section container">
+  <div class="section-head"><h2>ໝວດໝູ່ສິນຄ້າ</h2></div>
+  <div class="category-grid">
+    <% categories.forEach(cat => { %>
+      <a class="category-chip" href="/products?category=<%= cat.slug %>">
+        <img src="<%= cat.image_url || 'https://placehold.co/64x64' %>" alt="<%= cat.name %>">
+        <div><%= cat.name %></div>
+      </a>
+    <% }) %>
+    <% if (categories.length === 0) { %>
+      <div class="empty-state">ຍັງບໍ່ທັນມີໝວດໝູ່ — ເພີ່ມໄດ້ຈາກໜ້າ Admin</div>
+    <% } %>
+  </div>
+</section>
+
+<section class="section" style="background:var(--sage)">
+  <div class="container">
+    <div class="section-head">
+      <h2>ສິນຄ້າແນະນຳ</h2>
+      <a href="/products">ເບິ່ງທັງໝົດ →</a>
+    </div>
+    <div class="product-grid">
+      <% featured.forEach(p => { %>
+        <%- include('partials/product-card', { p }) %>
+      <% }) %>
+      <% if (featured.length === 0) { %><div class="empty-state">ຍັງບໍ່ທັນມີສິນຄ້າແນະນຳ</div><% } %>
+    </div>
+  </div>
+</section>
+
+<section class="section container">
+  <div class="section-head">
+    <h2>ສິນຄ້າມາໃໝ່</h2>
+    <a href="/products?sort=newest">ເບິ່ງທັງໝົດ →</a>
+  </div>
+  <div class="product-grid">
+    <% newest.forEach(p => { %>
+      <%- include('partials/product-card', { p }) %>
+    <% }) %>
+    <% if (newest.length === 0) { %><div class="empty-state">ຍັງບໍ່ທັນມີສິນຄ້າ</div><% } %>
+  </div>
+</section>

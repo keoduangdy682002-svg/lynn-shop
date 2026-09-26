@@ -1,0 +1,97 @@
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <div class="admin-main">
+    <h1><%= product ? `ແກ້ໄຂສິນຄ້າ: ${product.name}` : 'ເພີ່ມສິນຄ້າໃໝ່' %></h1>
+    <form action="<%= product ? `/admin/products/${product.id}/edit` : '/admin/products/new' %>"
+          method="POST" enctype="multipart/form-data" style="max-width:640px;">
+
+      <div class="form-group"><label>ຊື່ສິນຄ້າ</label><input name="name" value="<%= product?.name || '' %>" required></div>
+      <div class="form-group">
+        <label>Slug (ໃຊ້ໃນ URL, ຕົວອັກສອນອັງກິດ)</label>
+        <input name="slug" value="<%= product?.slug || '' %>" required placeholder="e.g. red-tshirt">
+      </div>
+      <div class="form-group"><label>ລາຍລະອຽດ</label><textarea name="description" rows="4"><%= product?.description || '' %></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>ລາຄາ (₭)</label><input type="number" name="price" value="<%= product?.price || '' %>" required></div>
+        <div class="form-group"><label>ລາຄາເກົ່າ (ຖ້າມີ)</label><input type="number" name="compare_price" value="<%= product?.compare_price || '' %>"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>ຈຳນວນສະຕັອກ</label><input type="number" name="stock" value="<%= product?.stock ?? '' %>" required></div>
+        <div class="form-group"><label>SKU</label><input name="sku" value="<%= product?.sku || '' %>"></div>
+      </div>
+      <div class="form-group">
+        <label>ໝວດໝູ່</label>
+        <select name="category_id">
+          <option value="">-- ເລືອກ --</option>
+          <% categories.forEach(c => { %>
+            <option value="<%= c.id %>" <%= product?.category_id === c.id ? 'selected' : '' %>><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:600;">
+          <input type="checkbox" name="is_featured" style="width:auto;" <%= product?.is_featured ? 'checked' : '' %>>
+          ⭐ ສະແດງເປັນ "ສິນຄ້າແນະນຳ" ຢູ່ໜ້າຫລັກ
+        </label>
+      </div>
+
+      <% if (product && product.product_images && product.product_images[0]) { %>
+        <div class="form-group">
+          <label>ຮູບຫລັກປັດຈຸບັນ</label>
+          <img src="<%= product.product_images[0].image_url %>" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--line);">
+        </div>
+      <% } %>
+      <div class="form-group">
+        <label><%= product ? 'ປ່ຽນຮູບຫລັກ (ອັບໂຫລດຈາກເຄື່ອງ)' : 'ຮູບຫລັກຂອງສິນຄ້າ (ອັບໂຫລດຈາກເຄື່ອງ)' %></label>
+        <input type="file" name="image_file" accept="image/*">
+      </div>
+      <div class="form-group">
+        <label>ຫລື ໃສ່ລິ້ງຮູບແທນ</label>
+        <input name="image_url" placeholder="https://...">
+      </div>
+
+      <hr style="border-color:var(--line);margin:24px 0;">
+
+      <% if (product && product.product_variants && product.product_variants.length) { %>
+        <h3>ຕົວເລືອກປັດຈຸບັນ</h3>
+        <% product.product_variants.forEach(v => { %>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--sage);border-radius:8px;margin-bottom:8px;">
+            <% if (v.image_url) { %><img src="<%= v.image_url %>" style="width:40px;height:40px;object-fit:cover;border-radius:6px;"><% } %>
+            <span style="flex:1;"><%= v.name %> <%= v.extra_price > 0 ? `(+₭${v.extra_price})` : '' %> · ສະຕັອກ: <%= v.stock %></span>
+            <form action="/admin/products/<%= product.id %>/variants/<%= v.id %>/delete" method="POST" onsubmit="return confirm('ລຶບຕົວເລືອກນີ້?')">
+              <button type="submit" class="btn btn-outline btn-sm">ລຶບ</button>
+            </form>
+          </div>
+        <% }) %>
+      <% } %>
+
+      <h3><%= product ? 'ເພີ່ມຕົວເລືອກໃໝ່' : 'ຕົວເລືອກສິນຄ້າ (ສີ / ໄຊ້)' %> — ບໍ່ບັງຄັບ</h3>
+      <p class="product-meta">ແຕ່ລະຕົວເລືອກສາມາດມີຮູບຂອງຕົນເອງ ໃຫ້ລູກຄ້າກົດເລືອກເບິ່ງໄດ້ຢູ່ໜ້າສິນຄ້າ</p>
+
+      <div id="variantRows"></div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="addVariantRow()">+ ເພີ່ມຕົວເລືອກ</button>
+
+      <div style="margin-top:30px;">
+        <button type="submit" class="btn btn-gold"><%= product ? 'ບັນທຶກການແກ້ໄຂ' : 'ບັນທຶກສິນຄ້າ' %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<template id="variantRowTemplate">
+  <div class="variant-row" style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px;padding:12px;background:var(--sage);border-radius:8px;">
+    <div class="form-group" style="margin:0;"><label>ຊື່ຕົວເລືອກ (ເຊັ່ນ "ສີແດງ")</label><input name="variant_name"></div>
+    <div class="form-group" style="margin:0;"><label>ລາຄາເພີ່ມ</label><input type="number" name="variant_extra_price" value="0"></div>
+    <div class="form-group" style="margin:0;"><label>ສະຕັອກ</label><input type="number" name="variant_stock" value="0"></div>
+    <div class="form-group" style="margin:0;"><label>ຮູບຕົວເລືອກ</label><input type="file" name="variant_images" accept="image/*"></div>
+    <button type="button" class="btn btn-outline btn-sm" onclick="this.closest('.variant-row').remove()">ລຶບ</button>
+  </div>
+</template>
+
+<script>
+  function addVariantRow() {
+    const tpl = document.getElementById('variantRowTemplate');
+    const clone = tpl.content.cloneNode(true);
+    document.getElementById('variantRows').appendChild(clone);
+  }
+</script>

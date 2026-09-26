@@ -1,0 +1,63 @@
+<div class="container section">
+  <a href="/orders" style="font-size:14px;">← ກັບໄປປະຫວັດການສັ່ງຊື້</a>
+  <div class="section-head" style="margin-top:10px;">
+    <h1>ອໍເດີ #<%= order.order_no %></h1>
+    <span class="badge badge-<%= order.status %>"><%= order.status %></span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:32px;">
+    <div>
+      <h3>ລາຍການສິນຄ້າ</h3>
+      <div class="table-scroll">
+      <table class="cart-table">
+        <thead><tr><th>ສິນຄ້າ</th><th>ຈຳນວນ</th><th>ລວມ</th></tr></thead>
+        <tbody>
+          <% order.order_items.forEach(item => { %>
+            <tr>
+              <td><%= item.product_name %></td>
+              <td><%= item.quantity %></td>
+              <td>₭<%= Number(item.line_total).toLocaleString() %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      </div>
+
+      <h3 style="margin-top:26px;">ທີ່ຢູ່ຈັດສົ່ງ</h3>
+      <p>
+        <%= order.shipping_address.receiver_name %> · <%= order.shipping_address.phone %><br>
+        <%= [order.shipping_address.village, order.shipping_address.district, order.shipping_address.province].filter(Boolean).join(', ') %>
+        <% if (order.shipping_address.detail) { %><br><%= order.shipping_address.detail %><% } %>
+      </p>
+
+      <% if (order.tracking_number) { %>
+        <h3 style="margin-top:26px;">ເລກຕິດຕາມພັດສະດຸ (Tracking No.)</h3>
+        <p style="font-family:monospace;font-size:16px;background:var(--sage);padding:8px 14px;border-radius:8px;display:inline-block;">
+          <%= order.tracking_number %>
+        </p>
+      <% } %>
+
+      <% if (order.shipping_proof_url) { %>
+        <h3 style="margin-top:26px;">📎 ບິນຝາກເຄື່ອງ / ຫລັກຖານການຈັດສົ່ງ</h3>
+        <a href="<%= order.shipping_proof_url %>" target="_blank">
+          <img src="<%= order.shipping_proof_url %>" alt="ບິນຝາກເຄື່ອງ" style="max-width:320px;border-radius:var(--radius);border:1px solid var(--line);">
+        </a>
+        <p class="product-meta">ກົດຮູບເພື່ອເບິ່ງຂະໜາດເຕັມ</p>
+      <% } else if (order.status === 'shipped' || order.status === 'delivered') { %>
+        <p class="product-meta" style="margin-top:20px;">ຍັງບໍ່ທັນມີການແນບບິນຝາກເຄື່ອງ</p>
+      <% } %>
+    </div>
+
+    <div>
+      <div class="cart-summary" style="margin-left:0;max-width:none;">
+        <div class="row"><span>ລວມຍ່ອຍ</span><span>₭<%= Number(order.subtotal).toLocaleString() %></span></div>
+        <div class="row"><span>ຄ່າສົ່ງ</span><span>₭<%= Number(order.shipping_fee).toLocaleString() %></span></div>
+        <div class="row total"><span>ລວມທັງໝົດ</span><span>₭<%= Number(order.total).toLocaleString() %></span></div>
+      </div>
+      <p class="product-meta" style="margin-top:14px;">
+        ວັນທີສັ່ງຊື້: <%= new Date(order.created_at).toLocaleString('lo-LA') %><br>
+        ວິທີຊຳລະ: <%= order.payment_method === 'cod' ? 'ເກັບເງິນປາຍທາງ' : 'ໂອນຜ່ານທະນາຄານ' %>
+      </p>
+    </div>
+  </div>
+</div>

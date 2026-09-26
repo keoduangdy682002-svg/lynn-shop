@@ -1,0 +1,13 @@
+<% if (typeof flash !== 'undefined' && flash) { %>
+  <div id="toast" class="toast toast-<%= flash.type %>">
+    <span class="toast-icon"><%= flash.type === 'success' ? '✅' : '⚠️' %></span>
+    <span class="toast-msg"><%= flash.message %></span>
+    <button class="toast-close" onclick="document.getElementById('toast').remove()">&times;</button>
+  </div>
+  <script>
+    setTimeout(() => {
+      const t = document.getElementById('toast');
+      if (t) { t.classList.add('toast-hide'); setTimeout(() => t.remove(), 400); }
+    }, 3500);
+  </script>
+<% } %>

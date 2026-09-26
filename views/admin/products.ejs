@@ -1,0 +1,31 @@
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <div class="admin-main">
+    <div class="section-head">
+      <h1>ຈັດການສິນຄ້າ</h1>
+      <a href="/admin/products/new" class="btn btn-gold">+ ເພີ່ມສິນຄ້າ</a>
+    </div>
+    <div style="overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>ຊື່</th><th>ໝວດໝູ່</th><th>ລາຄາ</th><th>ສະຕັອກ</th><th>ສະຖານະ</th><th></th></tr></thead>
+      <tbody>
+        <% products.forEach(p => { %>
+          <tr>
+            <td><%= p.name %></td>
+            <td><%= p.categories?.name || '-' %></td>
+            <td>₭<%= Number(p.price).toLocaleString() %></td>
+            <td><%= p.stock %></td>
+            <td><span class="badge badge-<%= p.status === 'active' ? 'paid' : 'pending' %>"><%= p.status %></span></td>
+            <td>
+              <a href="/admin/products/<%= p.id %>/edit" class="btn btn-outline btn-sm">ແກ້ໄຂ</a>
+              <form action="/admin/products/<%= p.id %>/delete" method="POST" onsubmit="return confirm('ລຶບສິນຄ້ານີ້?')" style="display:inline;">
+                <button class="btn btn-outline btn-sm" type="submit">ລຶບ</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>

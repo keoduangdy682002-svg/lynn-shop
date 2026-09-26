@@ -1,0 +1,19 @@
+<div class="container section">
+  <h1>ປະຫວັດການສັ່ງຊື້</h1>
+  <% if (orders.length === 0) { %>
+    <div class="empty-state">ທ່ານຍັງບໍ່ທັນມີອໍເດີ <br><br><a href="/products" class="btn btn-gold">ໄປຊື້ເຄື່ອງ</a></div>
+  <% } %>
+  <% orders.forEach(o => { %>
+    <div style="border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>#<%= o.order_no %></strong>
+        <span class="badge badge-<%= o.status %>"><%= o.status %></span>
+      </div>
+      <p class="product-meta"><%= new Date(o.created_at).toLocaleString('lo-LA') %> · <%= o.order_items.length %> ລາຍການ</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong style="color:var(--gold);">₭<%= Number(o.total).toLocaleString() %></strong>
+        <a href="/orders/<%= o.id %>" class="btn btn-outline btn-sm">ເບິ່ງລາຍລະອຽດ →</a>
+      </div>
+    </div>
+  <% }) %>
+</div>

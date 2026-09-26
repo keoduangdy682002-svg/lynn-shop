@@ -1,0 +1,13 @@
+<a class="product-card" href="/products/<%= p.slug %>">
+  <div class="product-thumb">
+    <img src="<%= (p.product_images && p.product_images[0]) ? p.product_images[0].image_url : 'https://placehold.co/300x300?text=Lynn' %>" alt="<%= p.name %>">
+  </div>
+  <div class="product-info">
+    <div class="product-name"><%= p.name %></div>
+    <div class="product-price">
+      <span class="price-now">₭<%= Number(p.price).toLocaleString() %></span>
+      <% if (p.compare_price) { %><span class="price-old">₭<%= Number(p.compare_price).toLocaleString() %></span><% } %>
+    </div>
+    <div class="product-meta">⭐ <%= p.rating_avg || 0 %> · ຂາຍແລ້ວ <%= p.sold_count || 0 %></div>
+  </div>
+</a>

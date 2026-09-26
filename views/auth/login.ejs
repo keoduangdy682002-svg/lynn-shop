@@ -1,0 +1,10 @@
+<div class="form-card">
+  <h2 style="text-align:center;">ເຂົ້າສູ່ລະບົບ</h2>
+  <% if (error) { %><div class="form-error"><%= error %></div><% } %>
+  <form action="/auth/login" method="POST">
+    <div class="form-group"><label>ອີເມວ</label><input type="email" name="email" required></div>
+    <div class="form-group"><label>ລະຫັດຜ່ານ</label><input type="password" name="password" required></div>
+    <button type="submit" class="btn btn-gold btn-block">ເຂົ້າສູ່ລະບົບ</button>
+  </form>
+  <div class="form-note">ຍັງບໍ່ທັນມີບັນຊີ? <a href="/auth/register">ສະໝັກສະມາຊິກ</a></div>
+</div>

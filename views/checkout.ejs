@@ -1,0 +1,40 @@
+<div class="container section">
+  <h1>ຢືນຢັນການສັ່ງຊື້</h1>
+  <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:32px;">
+    <form action="/orders/checkout" method="POST">
+      <h3>ທີ່ຢູ່ຈັດສົ່ງ</h3>
+      <div class="form-group"><label>ຊື່ຜູ້ຮັບ</label><input name="receiver_name" required></div>
+      <div class="form-group"><label>ເບີໂທ</label><input name="phone" required></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>ແຂວງ</label><input name="province" required></div>
+        <div class="form-group"><label>ເມືອງ</label><input name="district" required></div>
+      </div>
+      <div class="form-group"><label>ບ້ານ</label><input name="village"></div>
+      <div class="form-group"><label>ລາຍລະອຽດເພີ່ມເຕີມ</label><textarea name="detail" rows="2"></textarea></div>
+
+      <h3>ວິທີຊຳລະເງິນ</h3>
+      <div class="form-group">
+        <label><input type="radio" name="payment_method" value="cod" checked> ເກັບເງິນປາຍທາງ (COD)</label><br>
+        <label><input type="radio" name="payment_method" value="bank_transfer"> ໂອນຜ່ານທະນາຄານ</label>
+      </div>
+      <div class="form-group"><label>ໝາຍເຫດ (ຖ້າມີ)</label><textarea name="note" rows="2"></textarea></div>
+
+      <button type="submit" class="btn btn-gold btn-block">ຢືນຢັນສັ່ງຊື້</button>
+    </form>
+
+    <div>
+      <h3>ສະຫລຸບອໍເດີ</h3>
+      <% items.forEach(i => { %>
+        <div class="row" style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;">
+          <span><%= i.products.name %> × <%= i.quantity %></span>
+          <span>₭<%= (Number(i.products.price) * i.quantity).toLocaleString() %></span>
+        </div>
+      <% }) %>
+      <hr style="border-color:var(--line);">
+      <div class="row" style="display:flex;justify-content:space-between;font-weight:700;color:var(--forest);">
+        <span>ລວມຍ່ອຍ</span><span>₭<%= subtotal.toLocaleString() %></span>
+      </div>
+      <p class="product-meta">ຄ່າສົ່ງ: ຟຣີ ສຳລັບອໍເດີເກີນ ₭500,000, ນອກນັ້ນ ₭20,000</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <div class="admin-main">
+    <h1>ແກ້ໄຂໝວດໝູ່</h1>
+    <form action="/admin/categories/<%= category.id %>/edit" method="POST" enctype="multipart/form-data" style="max-width:480px;">
+      <div class="form-group"><label>ຊື່ໝວດໝູ່</label><input name="name" value="<%= category.name %>" required></div>
+      <div class="form-group"><label>Slug</label><input name="slug" value="<%= category.slug %>" required></div>
+
+      <% if (category.image_url) { %>
+        <div class="form-group">
+          <label>ຮູບປັດຈຸບັນ</label><br>
+          <img src="<%= category.image_url %>" style="width:70px;height:70px;object-fit:cover;border-radius:50%;">
+        </div>
+      <% } %>
+      <div class="form-group"><label>ປ່ຽນຮູບ (ອັບໂຫລດຈາກເຄື່ອງ)</label><input type="file" name="image_file" accept="image/*"></div>
+      <div class="form-group"><label>ຫລື ໃສ່ລິ້ງຮູບແທນ</label><input name="image_url" placeholder="https://..."></div>
+
+      <button type="submit" class="btn btn-gold">ບັນທຶກການແກ້ໄຂ</button>
+      <a href="/admin/categories" class="btn btn-outline">ຍົກເລີກ</a>
+    </form>
+  </div>
+</div>
