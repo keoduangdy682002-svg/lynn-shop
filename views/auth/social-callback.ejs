@@ -8,19 +8,25 @@
   (async function () {
     const statusEl = document.getElementById('statusMsg');
     try {
+      // ສຳຄັນ: ບໍ່ຕ້ອງເອີ້ນ exchangeCodeForSession() ເອງ — supabase-js ຈະອ່ານ
+      // token/code ຈາກ URL ໃຫ້ອັດຕະໂນມັດຕອນສ້າງ client (detectSessionInUrl ເປັນ true
+      // ໂດຍ default, ຮອງຮັບທັງ implicit flow (#hash) ແລະ PKCE flow (?code=)).
+      // ຖ້າມາເອີ້ນ exchangeCodeForSession() ຊ້ຳອີກຮອບ, code ຈະຖືກໃຊ້ໄປແລ້ວ ແລະຈະ error ຄືນ.
       const client = supabase.createClient('<%= supabaseUrl %>', '<%= supabaseAnonKey %>');
 
-      // supabase-js ຈະອ່ານ code/token ຈາກ URL ໃຫ້ອັດຕະໂນມັດ ແລະ ສ້າງ session ຝັ່ງ browser
-      const { data, error } = await client.auth.exchangeCodeForSession(window.location.href);
+      // getSession() ຈະລໍຖ້າຂັ້ນຕອນ auto-detect ຂ້າງເທິງໃຫ້ສຳເລັດກ່ອນ ຈຶ່ງສົ່ງຄືນ session
+      let { data, error } = await client.auth.getSession();
       let session = data?.session;
 
+      // ສຳຮອງ: ຖ້າຍັງບໍ່ທັນໄດ້ (ບາງເບົາເຊີຊ້າ) ລອງລໍຖ້າ ແລ້ວກວດອີກຮອບ
       if (!session) {
-        // ບາງ provider ສົ່ງມາເປັນ implicit flow (token ຢູ່ໃນ #hash) — ລອງດຶງ session ປັດຈຸບັນແທນ
-        const current = await client.auth.getSession();
-        session = current?.data?.session;
+        await new Promise(r => setTimeout(r, 800));
+        const retry = await client.auth.getSession();
+        session = retry?.data?.session;
+        error = retry?.error;
       }
 
-      if (!session) throw error || new Error('ບໍ່ພົບ session ຈາກ social login');
+      if (!session) throw error || new Error('ບໍ່ພົບ session ຈາກ social login — ລອງໃໝ່ອີກຄັ້ງ');
 
       // ສົ່ງ access_token ໄປໃຫ້ server ຝັ່ງຫລັງບ້ານ ເພື່ອສ້າງ session (cookie) ຂອງເວັບເຮົາເອງ
       const res = await fetch('/auth/social-session', {
@@ -37,8 +43,9 @@
         throw new Error(result.message || 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ');
       }
     } catch (err) {
+      console.error('social login error:', err);
       statusEl.textContent = 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ: ' + err.message;
-      setTimeout(() => { window.location.href = '/auth/login'; }, 2500);
+      setTimeout(() => { window.location.href = '/auth/login'; }, 3000);
     }
   })();
 </script>
