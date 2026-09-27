@@ -1,5 +1,4 @@
 // ຟັງຊັນຊ່ວຍ "ຝາກ" ຂໍ້ຄວາມແຈ້ງເຕືອນໄວ້ໃນ session ກ່ອນ redirect
-// ຫລັງ redirect ໄປໜ້າໃໝ່, attachUser ຈະດຶງມາສະແດງ ແລ້ວລຶບຖິ້ມ (ສະແດງເທື່ອດຽວ)
 function setFlash(req, type, message) {
   req.session.flash = { type, message }; // type: 'success' | 'error'
 }
@@ -14,8 +13,18 @@ function attachUser(req, res, next) {
 }
 
 // ບັງຄັບໃຫ້ login ກ່ອນ
+// ຮອງຮັບ AJAX request (ເຊັ່ນ ກົດເພີ່ມໃສ່ກະຕ່າ) — ຕອບ JSON ແທນ redirect
+// ໃຫ້ໜ້າເວັບສະແດງ popup ແລ້ວເດັ້ງໄປໜ້າສະໝັກສະມາຊິກໄດ້ເອງ
 function requireAuth(req, res, next) {
   if (!req.session.user) {
+    const isAjax = req.get('X-Requested-With') === 'XMLHttpRequest';
+    if (isAjax) {
+      return res.status(401).json({
+        success: false,
+        requiresAuth: true,
+        message: 'ກະລຸນາສະໝັກສະມາຊິກ ຫລື ເຂົ້າສູ່ລະບົບກ່ອນ ຈຶ່ງຈະສາມາດເພີ່ມສິນຄ້າໃສ່ກະຕ່າໄດ້'
+      });
+    }
     req.session.redirectTo = req.originalUrl;
     setFlash(req, 'error', 'ກະລຸນາເຂົ້າສູ່ລະບົບກ່ອນ');
     return res.redirect('/auth/login');

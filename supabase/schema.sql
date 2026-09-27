@@ -11,6 +11,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   phone text,
+  email text,                  -- ໃຊ້ສຳລັບຜູ້ໃຊ້ທີ່ສະໝັກດ້ວຍເບີໂທ ຫລື social login (auth.users.email ເປັນ email ປອມ)
   avatar_url text,
   role text not null default 'customer' check (role in ('customer','admin','seller')),
   created_at timestamptz not null default now(),
@@ -131,6 +132,16 @@ create table public.cart_items (
 -- ---------------------------------------------------------------------
 -- 8. ORDERS & ORDER ITEMS
 -- ---------------------------------------------------------------------
+create table public.shipping_companies (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  supports_cod boolean not null default true,   -- ເກັບເງິນປາຍທາງໄດ້ ຫລື ບໍ່
+  qr_image_url text,                            -- ຮູບຄິວອາໂຄດ ສຳລັບກໍລະນີບໍ່ຮັບ COD
+  active boolean not null default true,
+  sort_order int default 0,
+  created_at timestamptz not null default now()
+);
+
 create table public.orders (
   id uuid primary key default gen_random_uuid(),
   order_no text unique not null,          -- ລະຫັດອໍເດີ ໃຫ້ລູກຄ້າອ້າງອິງ ເຊັ່ນ LYN-20260925-0001
@@ -142,6 +153,8 @@ create table public.orders (
   discount_amount numeric(12,2) not null default 0,
   total numeric(12,2) not null,
   shipping_address jsonb not null,        -- snapshot ຂອງທີ່ຢູ່ ຕອນສັ່ງຊື້
+  shipping_company_id uuid references public.shipping_companies(id),
+  payment_proof_url text,                 -- ຫລັກຖານການໂອນເງິນຈາກລູກຄ້າ (ກໍລະນີຂົນສົ່ງບໍ່ຮັບ COD)
   payment_method text check (payment_method in ('cod','bank_transfer','card')),
   payment_status text not null default 'unpaid' check (payment_status in ('unpaid','paid','failed')),
   coupon_code text,
@@ -250,6 +263,9 @@ alter table public.categories enable row level security;
 -- public can read products/categories (storefront)
 create policy "public read products" on public.products for select using (status = 'active');
 create policy "public read categories" on public.categories for select using (true);
+
+alter table public.shipping_companies enable row level security;
+create policy "public read active shipping companies" on public.shipping_companies for select using (active = true);
 
 -- users manage only their own rows
 create policy "own profile" on public.profiles for select using (auth.uid() = id);

@@ -30,6 +30,19 @@
         <% if (order.shipping_address.detail) { %><br><%= order.shipping_address.detail %><% } %>
       </p>
 
+      <% if (order.shipping_companies) { %>
+        <h3 style="margin-top:26px;">🚚 ຂົນສົ່ງ</h3>
+        <p><%= order.shipping_companies.name %></p>
+      <% } %>
+
+      <% if (order.payment_proof_url) { %>
+        <h3 style="margin-top:26px;">💳 ຫລັກຖານການໂອນເງິນຂອງທ່ານ</h3>
+        <a href="<%= order.payment_proof_url %>" target="_blank">
+          <img src="<%= order.payment_proof_url %>" alt="ຫລັກຖານການໂອນເງິນ" style="max-width:220px;border-radius:var(--radius);border:1px solid var(--line);">
+        </a>
+        <p class="product-meta">ສະຖານະການຊຳລະ: <%= order.payment_status === 'paid' ? 'ຢືນຢັນຮັບເງິນແລ້ວ ✅' : 'ລໍຖ້າຢືນຢັນຈາກຮ້ານ' %></p>
+      <% } %>
+
       <% if (order.tracking_number) { %>
         <h3 style="margin-top:26px;">ເລກຕິດຕາມພັດສະດຸ (Tracking No.)</h3>
         <p style="font-family:monospace;font-size:16px;background:var(--sage);padding:8px 14px;border-radius:8px;display:inline-block;">

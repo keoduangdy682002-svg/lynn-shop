@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('success', data.message);
         const badge = document.getElementById('cartBadge');
         if (badge) badge.textContent = data.cartCount;
+      } else if (data.requiresAuth) {
+        showToast('error', data.message);
+        setTimeout(() => { window.location.href = '/auth/register'; }, 1600);
       } else {
         showToast('error', data.message || 'ເພີ່ມສິນຄ້າບໍ່ສຳເລັດ');
       }

@@ -1,0 +1,44 @@
+<div class="container section" style="text-align:center;padding:80px 20px;">
+  <h1>🌿 ກຳລັງເຂົ້າສູ່ລະບົບ...</h1>
+  <p id="statusMsg" style="color:#777;">ກະລຸນາລໍຖ້າສັກຄູ່</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  (async function () {
+    const statusEl = document.getElementById('statusMsg');
+    try {
+      const client = supabase.createClient('<%= supabaseUrl %>', '<%= supabaseAnonKey %>');
+
+      // supabase-js ຈະອ່ານ code/token ຈາກ URL ໃຫ້ອັດຕະໂນມັດ ແລະ ສ້າງ session ຝັ່ງ browser
+      const { data, error } = await client.auth.exchangeCodeForSession(window.location.href);
+      let session = data?.session;
+
+      if (!session) {
+        // ບາງ provider ສົ່ງມາເປັນ implicit flow (token ຢູ່ໃນ #hash) — ລອງດຶງ session ປັດຈຸບັນແທນ
+        const current = await client.auth.getSession();
+        session = current?.data?.session;
+      }
+
+      if (!session) throw error || new Error('ບໍ່ພົບ session ຈາກ social login');
+
+      // ສົ່ງ access_token ໄປໃຫ້ server ຝັ່ງຫລັງບ້ານ ເພື່ອສ້າງ session (cookie) ຂອງເວັບເຮົາເອງ
+      const res = await fetch('/auth/social-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: session.access_token })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        statusEl.textContent = 'ສຳເລັດ! ກຳລັງພາໄປໜ້າຫລັກ...';
+        window.location.href = result.redirect || '/';
+      } else {
+        throw new Error(result.message || 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ');
+      }
+    } catch (err) {
+      statusEl.textContent = 'ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ: ' + err.message;
+      setTimeout(() => { window.location.href = '/auth/login'; }, 2500);
+    }
+  })();
+</script>

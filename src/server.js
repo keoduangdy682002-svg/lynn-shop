@@ -7,6 +7,15 @@ const path = require('path');
 
 const { attachUser } = require('./middleware/auth');
 
+// ---- ຕາໜ່າງປອດໄພ: ຖ້າມີ error ທີ່ບໍ່ໄດ້ຈັບໄວ້ (bug) ໃນບ່ອນໃດບ່ອນໜຶ່ງ,
+// ໃຫ້ log ໄວ້ເທົ່ານັ້ນ ບໍ່ໃຫ້ server ທັງໝົດຄ້າງ/ດັບໄປໝົດ (ຄືເຫດການ checkout ຄັ້ງກ່ອນ)
+process.on('unhandledRejection', (err) => {
+  console.error('⚠️ Unhandled Rejection:', err);
+});
+process.on('uncaughtException', (err) => {
+  console.error('⚠️ Uncaught Exception:', err);
+});
+
 const app = express();
 
 // ---- View engine ----

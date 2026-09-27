@@ -1,0 +1,40 @@
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <div class="admin-main">
+    <h1>ຈັດການບໍລິສັດຂົນສົ່ງ</h1>
+    <p class="product-meta">ກຳນົດວ່າຂົນສົ່ງໃດຮັບເກັບເງິນປາຍທາງ (COD) ໄດ້ — ຖ້າບໍ່ຮັບ, ລູກຄ້າຈະຕ້ອງສະແກນ QR ຈ່າຍເງິນ ແລະ ແນບຫລັກຖານກ່ອນສັ່ງຊື້</p>
+
+    <form action="/admin/shipping/new" method="POST" enctype="multipart/form-data"
+          style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;align-items:end;background:var(--sage);padding:16px;border-radius:var(--radius);">
+      <div class="form-group" style="margin:0;"><label>ຊື່ບໍລິສັດຂົນສົ່ງ</label><input name="name" required></div>
+      <div class="form-group" style="margin:0;">
+        <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" name="supports_cod" style="width:auto;" checked> ຮັບເກັບເງິນປາຍທາງ (COD)</label>
+      </div>
+      <div class="form-group" style="margin:0;"><label>ຮູບ QR ຈ່າຍເງິນ (ຖ້າບໍ່ຮັບ COD)</label><input type="file" name="qr_image" accept="image/*"></div>
+      <button type="submit" class="btn btn-gold">ເພີ່ມຂົນສົ່ງ</button>
+    </form>
+
+    <div style="overflow-x:auto;">
+    <table class="data-table">
+      <thead><tr><th>ຊື່</th><th>ຮັບ COD</th><th>QR</th><th>ສະຖານະ</th><th></th></tr></thead>
+      <tbody>
+        <% companies.forEach(c => { %>
+          <tr>
+            <td><%= c.name %></td>
+            <td><%= c.supports_cod ? '✅ ຮັບ' : '❌ ບໍ່ຮັບ' %></td>
+            <td><% if (c.qr_image_url) { %><img src="<%= c.qr_image_url %>" style="width:36px;height:36px;object-fit:cover;border-radius:6px;"><% } else { %>-<% } %></td>
+            <td><%= c.active ? 'ເປີດໃຊ້' : 'ປິດ' %></td>
+            <td style="white-space:nowrap;">
+              <a href="/admin/shipping/<%= c.id %>/edit" class="btn btn-outline btn-sm">ແກ້ໄຂ</a>
+              <form action="/admin/shipping/<%= c.id %>/delete" method="POST" onsubmit="return confirm('ລຶບຂົນສົ່ງນີ້?')" style="display:inline;">
+                <button type="submit" class="btn btn-outline btn-sm">ລຶບ</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+        <% if (companies.length === 0) { %><tr><td colspan="5" class="empty-state">ຍັງບໍ່ທັນມີຂົນສົ່ງ</td></tr><% } %>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>

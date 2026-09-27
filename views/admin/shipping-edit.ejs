@@ -1,0 +1,30 @@
+<div class="admin-layout">
+  <%- include('../partials/admin-sidebar') %>
+  <div class="admin-main">
+    <h1>ແກ້ໄຂຂົນສົ່ງ</h1>
+    <form action="/admin/shipping/<%= company.id %>/edit" method="POST" enctype="multipart/form-data" style="max-width:480px;">
+      <div class="form-group"><label>ຊື່ບໍລິສັດຂົນສົ່ງ</label><input name="name" value="<%= company.name %>" required></div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" name="supports_cod" style="width:auto;" <%= company.supports_cod ? 'checked' : '' %>> ຮັບເກັບເງິນປາຍທາງ (COD)
+        </label>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" name="active" style="width:auto;" <%= company.active ? 'checked' : '' %>> ເປີດໃຊ້ງານ
+        </label>
+      </div>
+
+      <% if (company.qr_image_url) { %>
+        <div class="form-group">
+          <label>QR ປັດຈຸບັນ</label><br>
+          <img src="<%= company.qr_image_url %>" style="width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--line);">
+        </div>
+      <% } %>
+      <div class="form-group"><label>ປ່ຽນຮູບ QR (ຖ້າຕ້ອງການ)</label><input type="file" name="qr_image" accept="image/*"></div>
+
+      <button type="submit" class="btn btn-gold">ບັນທຶກການແກ້ໄຂ</button>
+      <a href="/admin/shipping" class="btn btn-outline">ຍົກເລີກ</a>
+    </form>
+  </div>
+</div>

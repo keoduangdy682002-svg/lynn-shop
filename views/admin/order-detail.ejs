@@ -33,6 +33,24 @@
           <% if (order.shipping_address.detail) { %><br><%= order.shipping_address.detail %><% } %>
         </p>
 
+        <% if (order.shipping_companies) { %>
+          <h3 style="margin-top:24px;">🚚 ຂົນສົ່ງທີ່ລູກຄ້າເລືອກ</h3>
+          <p><%= order.shipping_companies.name %></p>
+        <% } %>
+
+        <% if (order.payment_proof_url) { %>
+          <h3 style="margin-top:24px;">💳 ຫລັກຖານການໂອນເງິນຈາກລູກຄ້າ</h3>
+          <a href="<%= order.payment_proof_url %>" target="_blank">
+            <img src="<%= order.payment_proof_url %>" style="max-width:220px;border-radius:var(--radius);border:1px solid var(--line);">
+          </a>
+          <p>ສະຖານະ: <strong><%= order.payment_status === 'paid' ? '✅ ຢືນຢັນຮັບເງິນແລ້ວ' : '⏳ ລໍຖ້າກວດສອບ' %></strong></p>
+          <% if (order.payment_status !== 'paid') { %>
+            <form action="/admin/orders/<%= order.id %>/confirm-payment" method="POST">
+              <button type="submit" class="btn btn-gold btn-sm">ຢືນຢັນວ່າໄດ້ຮັບເງິນແລ້ວ</button>
+            </form>
+          <% } %>
+        <% } %>
+
         <% if (order.note) { %>
           <h3 style="margin-top:24px;">📝 ໝາຍເຫດຈາກລູກຄ້າ</h3>
           <p style="background:var(--sage);padding:12px 16px;border-radius:8px;"><%= order.note %></p>

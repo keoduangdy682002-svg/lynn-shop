@@ -1,7 +1,7 @@
 <div class="container section">
   <h1>ຢືນຢັນການສັ່ງຊື້</h1>
   <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:32px;">
-    <form action="/orders/checkout" method="POST">
+    <form action="/orders/checkout" method="POST" enctype="multipart/form-data" id="checkoutForm">
       <h3>ທີ່ຢູ່ຈັດສົ່ງ</h3>
       <div class="form-group"><label>ຊື່ຜູ້ຮັບ</label><input name="receiver_name" required></div>
       <div class="form-group"><label>ເບີໂທ</label><input name="phone" required></div>
@@ -12,11 +12,39 @@
       <div class="form-group"><label>ບ້ານ</label><input name="village"></div>
       <div class="form-group"><label>ລາຍລະອຽດເພີ່ມເຕີມ</label><textarea name="detail" rows="2"></textarea></div>
 
-      <h3>ວິທີຊຳລະເງິນ</h3>
+      <h3>ບໍລິສັດຂົນສົ່ງ</h3>
       <div class="form-group">
-        <label><input type="radio" name="payment_method" value="cod" checked> ເກັບເງິນປາຍທາງ (COD)</label><br>
-        <label><input type="radio" name="payment_method" value="bank_transfer"> ໂອນຜ່ານທະນາຄານ</label>
+        <select name="shipping_company_id" id="shippingSelect" required>
+          <option value="">-- ເລືອກບໍລິສັດຂົນສົ່ງ --</option>
+          <% shippingCompanies.forEach(c => { %>
+            <option value="<%= c.id %>" data-cod="<%= c.supports_cod %>" data-qr="<%= c.qr_image_url || '' %>">
+              <%= c.name %> <%= c.supports_cod ? '(ຮັບ COD)' : '(ບໍ່ຮັບ COD - ຕ້ອງໂອນລ່ວງໜ້າ)' %>
+            </option>
+          <% }) %>
+        </select>
+        <% if (shippingCompanies.length === 0) { %>
+          <p class="product-meta" style="color:#A33;">ຍັງບໍ່ທັນມີບໍລິສັດຂົນສົ່ງ — ແອັດມິນຕ້ອງໄປເພີ່ມກ່ອນຢູ່ໜ້າ "ຈັດການຂົນສົ່ງ"</p>
+        <% } %>
       </div>
+
+      <div id="codSection" style="display:none;">
+        <h3>ວິທີຊຳລະເງິນ</h3>
+        <div class="form-group">
+          <label><input type="radio" name="payment_method" value="cod" checked> ເກັບເງິນປາຍທາງ (COD)</label><br>
+          <label><input type="radio" name="payment_method" value="bank_transfer"> ໂອນຜ່ານທະນາຄານ</label>
+        </div>
+      </div>
+
+      <div id="qrSection" style="display:none;background:var(--sage);padding:16px;border-radius:var(--radius);margin-bottom:16px;">
+        <h3 style="margin-top:0;">📱 ສະແກນ QR ເພື່ອຈ່າຍເງິນ</h3>
+        <p class="product-meta">ຂົນສົ່ງນີ້ບໍ່ຮັບເກັບເງິນປາຍທາງ ກະລຸນາໂອນເງິນລ່ວງໜ້າ ແລ້ວແນບຫລັກຖານກ່ອນຢືນຢັນສັ່ງຊື້</p>
+        <img id="qrImage" src="" alt="QR ຈ່າຍເງິນ" style="max-width:220px;border-radius:8px;border:1px solid var(--line);margin-bottom:12px;">
+        <div class="form-group">
+          <label>ແນບຫລັກຖານການໂອນເງິນ (ຮູບ)</label>
+          <input type="file" name="payment_proof" id="paymentProofInput" accept="image/*">
+        </div>
+      </div>
+
       <div class="form-group"><label>ໝາຍເຫດ (ຖ້າມີ)</label><textarea name="note" rows="2"></textarea></div>
 
       <button type="submit" class="btn btn-gold btn-block">ຢືນຢັນສັ່ງຊື້</button>
@@ -38,3 +66,28 @@
     </div>
   </div>
 </div>
+
+<script>
+  const shippingSelect = document.getElementById('shippingSelect');
+  const codSection = document.getElementById('codSection');
+  const qrSection = document.getElementById('qrSection');
+  const qrImage = document.getElementById('qrImage');
+  const paymentProofInput = document.getElementById('paymentProofInput');
+
+  shippingSelect.addEventListener('change', function () {
+    const opt = this.options[this.selectedIndex];
+    if (!opt.value) { codSection.style.display = 'none'; qrSection.style.display = 'none'; return; }
+
+    const supportsCod = opt.dataset.cod === 'true';
+    if (supportsCod) {
+      codSection.style.display = 'block';
+      qrSection.style.display = 'none';
+      paymentProofInput.required = false;
+    } else {
+      codSection.style.display = 'none';
+      qrSection.style.display = 'block';
+      qrImage.src = opt.dataset.qr || '';
+      paymentProofInput.required = true;
+    }
+  });
+</script>

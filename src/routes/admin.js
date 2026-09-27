@@ -199,7 +199,7 @@ router.get('/orders', async (req, res) => {
 // ---- ບິນເຕັມ (ສຳລັບແອັດມິນເບິ່ງເພື່ອຈັດເຄື່ອງ) ----
 router.get('/orders/:id', async (req, res) => {
   const { data: order } = await supabase
-    .from('orders').select('*, order_items(*), profiles(full_name,phone)').eq('id', req.params.id).single();
+    .from('orders').select('*, order_items(*), profiles(full_name,phone), shipping_companies(name)').eq('id', req.params.id).single();
   if (!order) {
     setFlash(req, 'error', 'ບໍ່ພົບອໍເດີນີ້');
     return res.redirect('/admin/orders');
@@ -294,6 +294,87 @@ router.post('/categories/:id/delete', async (req, res) => {
     setFlash(req, 'error', 'ລຶບໝວດໝູ່ບໍ່ສຳເລັດ (ອາດຍັງມີສິນຄ້າໃນໝວດນີ້ຢູ່)');
   }
   res.redirect('/admin/categories');
+});
+
+// =====================================================================
+// ຂົນສົ່ງ (Shipping Companies)
+// =====================================================================
+
+router.get('/shipping', async (req, res) => {
+  const { data: companies } = await supabase.from('shipping_companies').select('*').order('sort_order');
+  res.render('admin/shipping', { title: 'ຈັດການຂົນສົ່ງ', companies: companies || [] });
+});
+
+router.post('/shipping/new', upload.single('qr_image'), async (req, res) => {
+  try {
+    const { name, supports_cod } = req.body;
+    if (!name) {
+      setFlash(req, 'error', 'ກະລຸນາປ້ອນຊື່ບໍລິສັດຂົນສົ່ງ');
+      return res.redirect('/admin/shipping');
+    }
+    let qrImageUrl = null;
+    if (req.file) qrImageUrl = await uploadFile(req.file, 'shipping-qr');
+
+    const { error } = await supabase.from('shipping_companies').insert({
+      name, supports_cod: supports_cod === 'on', qr_image_url: qrImageUrl
+    });
+    if (error) throw error;
+    setFlash(req, 'success', `ເພີ່ມຂົນສົ່ງ "${name}" ສຳເລັດ ✅`);
+  } catch (err) {
+    console.error('admin/shipping/new error:', err.message);
+    setFlash(req, 'error', 'ເພີ່ມຂົນສົ່ງບໍ່ສຳເລັດ');
+  }
+  res.redirect('/admin/shipping');
+});
+
+router.get('/shipping/:id/edit', async (req, res) => {
+  const { data: company } = await supabase.from('shipping_companies').select('*').eq('id', req.params.id).single();
+  if (!company) {
+    setFlash(req, 'error', 'ບໍ່ພົບຂົນສົ່ງນີ້');
+    return res.redirect('/admin/shipping');
+  }
+  res.render('admin/shipping-edit', { title: `ແກ້ໄຂ: ${company.name}`, company });
+});
+
+router.post('/shipping/:id/edit', upload.single('qr_image'), async (req, res) => {
+  try {
+    const { name, supports_cod, active } = req.body;
+    const updateData = { name, supports_cod: supports_cod === 'on', active: active === 'on' };
+    if (req.file) updateData.qr_image_url = await uploadFile(req.file, 'shipping-qr');
+
+    const { error } = await supabase.from('shipping_companies').update(updateData).eq('id', req.params.id);
+    if (error) throw error;
+    setFlash(req, 'success', `ອັບເດດຂົນສົ່ງ "${name}" ສຳເລັດ ✅`);
+    res.redirect('/admin/shipping');
+  } catch (err) {
+    console.error('admin/shipping/edit error:', err.message);
+    setFlash(req, 'error', 'ອັບເດດຂົນສົ່ງບໍ່ສຳເລັດ');
+    res.redirect(`/admin/shipping/${req.params.id}/edit`);
+  }
+});
+
+router.post('/shipping/:id/delete', async (req, res) => {
+  try {
+    const { error } = await supabase.from('shipping_companies').delete().eq('id', req.params.id);
+    if (error) throw error;
+    setFlash(req, 'success', 'ລຶບຂົນສົ່ງສຳເລັດ');
+  } catch (err) {
+    console.error('admin/shipping/delete error:', err.message);
+    setFlash(req, 'error', 'ລຶບບໍ່ສຳເລັດ (ອາດຍັງມີອໍເດີໃຊ້ຂົນສົ່ງນີ້ຢູ່)');
+  }
+  res.redirect('/admin/shipping');
+});
+
+// ---- ຢືນຢັນວ່າໄດ້ຮັບເງິນແລ້ວ (ຈາກຮູບຫລັກຖານໂອນເງິນຂອງລູກຄ້າ) ----
+router.post('/orders/:id/confirm-payment', async (req, res) => {
+  try {
+    const { error } = await supabase.from('orders').update({ payment_status: 'paid' }).eq('id', req.params.id);
+    if (error) throw error;
+    setFlash(req, 'success', 'ຢືນຢັນການຮັບເງິນສຳເລັດ');
+  } catch (err) {
+    setFlash(req, 'error', 'ຢືນຢັນບໍ່ສຳເລັດ');
+  }
+  res.redirect(req.get('Referer') || '/admin/orders');
 });
 
 module.exports = router;

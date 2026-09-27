@@ -1,12 +1,36 @@
 <div class="form-card">
   <h2 style="text-align:center;">ສະໝັກສະມາຊິກ</h2>
   <% if (error) { %><div class="form-error"><%= error %></div><% } %>
+
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+    <button type="button" class="btn btn-outline btn-block" onclick="socialLogin('google')">
+      🔵 ສະໝັກດ້ວຍ Google
+    </button>
+    <button type="button" class="btn btn-outline btn-block" onclick="socialLogin('facebook')">
+      🔷 ສະໝັກດ້ວຍ Facebook
+    </button>
+  </div>
+  <div style="text-align:center;color:#999;font-size:13px;margin-bottom:16px;">ຫລື ສະໝັກດ້ວຍອີເມວ/ເບີໂທ</div>
+
   <form action="/auth/register" method="POST">
     <div class="form-group"><label>ຊື່ ແລະ ນາມສະກຸນ</label><input name="full_name" required></div>
-    <div class="form-group"><label>ອີເມວ</label><input type="email" name="email" required></div>
-    <div class="form-group"><label>ເບີໂທ</label><input name="phone"></div>
+    <div class="form-group">
+      <label>ອີເມວ ຫລື ເບີໂທ</label>
+      <input name="identifier" required placeholder="you@email.com ຫລື 020XXXXXXXX">
+    </div>
     <div class="form-group"><label>ລະຫັດຜ່ານ</label><input type="password" name="password" minlength="6" required></div>
     <button type="submit" class="btn btn-gold btn-block">ສະໝັກສະມາຊິກ</button>
   </form>
   <div class="form-note">ມີບັນຊີແລ້ວ? <a href="/auth/login">ເຂົ້າສູ່ລະບົບ</a></div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  function socialLogin(provider) {
+    const client = supabase.createClient('<%= process.env.SUPABASE_URL %>', '<%= process.env.SUPABASE_ANON_KEY %>');
+    client.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin + '/auth/social-callback' }
+    });
+  }
+</script>

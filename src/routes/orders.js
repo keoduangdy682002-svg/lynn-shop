@@ -2,40 +2,89 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabaseClient');
 const { requireAuth, setFlash } = require('../middleware/auth');
+const { upload, uploadFile } = require('../utils/upload');
 
 router.use(requireAuth);
 
 // ---- ໜ້າ Checkout ----
 router.get('/checkout', async (req, res) => {
-  const userId = req.session.user.id;
-  const { data: cart } = await supabase.from('carts').select('*').eq('user_id', userId).single();
-  const { data: items } = await supabase
-    .from('cart_items')
-    .select('*, products(*), product_variants(*)')
-    .eq('cart_id', cart.id);
+  try {
+    const userId = req.session.user.id;
+    const { data: cart } = await supabase.from('carts').select('*').eq('user_id', userId).maybeSingle();
 
-  if (!items || items.length === 0) {
-    setFlash(req, 'error', 'ກະຕ່າຂອງທ່ານຍັງວ່າງ ກະລຸນາເລືອກສິນຄ້າກ່ອນ');
-    return res.redirect('/cart');
+    if (!cart) {
+      setFlash(req, 'error', 'ກະຕ່າຂອງທ່ານຍັງວ່າງ ກະລຸນາເລືອກສິນຄ້າກ່ອນ');
+      return res.redirect('/cart');
+    }
+
+    const { data: items } = await supabase
+      .from('cart_items')
+      .select('*, products(*), product_variants(*)')
+      .eq('cart_id', cart.id);
+
+    if (!items || items.length === 0) {
+      setFlash(req, 'error', 'ກະຕ່າຂອງທ່ານຍັງວ່າງ ກະລຸນາເລືອກສິນຄ້າກ່ອນ');
+      return res.redirect('/cart');
+    }
+
+    const { data: addresses } = await supabase.from('addresses').select('*').eq('user_id', userId);
+    const { data: shippingCompanies } = await supabase
+      .from('shipping_companies').select('*').eq('active', true).order('sort_order');
+
+    const subtotal = items.reduce((sum, i) => {
+      const price = Number(i.products.price) + Number(i.product_variants?.extra_price || 0);
+      return sum + price * i.quantity;
+    }, 0);
+
+    res.render('checkout', {
+      title: 'ຢືນຢັນການສັ່ງຊື້', items, addresses: addresses || [],
+      shippingCompanies: shippingCompanies || [], subtotal
+    });
+  } catch (err) {
+    console.error('checkout GET error:', err.message);
+    setFlash(req, 'error', 'ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່');
+    res.redirect('/cart');
   }
-
-  const { data: addresses } = await supabase.from('addresses').select('*').eq('user_id', userId);
-
-  const subtotal = items.reduce((sum, i) => {
-    const price = Number(i.products.price) + Number(i.product_variants?.extra_price || 0);
-    return sum + price * i.quantity;
-  }, 0);
-
-  res.render('checkout', { title: 'ຢືນຢັນການສັ່ງຊື້', items, addresses: addresses || [], subtotal });
 });
 
 // ---- ສ້າງອໍເດີ (ວາງອໍເດີ) ----
-router.post('/checkout', async (req, res) => {
+router.post('/checkout', upload.single('payment_proof'), async (req, res) => {
   try {
     const userId = req.session.user.id;
-    const { receiver_name, phone, province, district, village, detail, payment_method, note } = req.body;
+    const {
+      receiver_name, phone, province, district, village, detail,
+      payment_method, note, shipping_company_id
+    } = req.body;
 
-    const { data: cart } = await supabase.from('carts').select('*').eq('user_id', userId).single();
+    if (!shipping_company_id) {
+      setFlash(req, 'error', 'ກະລຸນາເລືອກບໍລິສັດຂົນສົ່ງ');
+      return res.redirect('/orders/checkout');
+    }
+
+    const { data: shippingCompany } = await supabase
+      .from('shipping_companies').select('*').eq('id', shipping_company_id).single();
+
+    if (!shippingCompany) {
+      setFlash(req, 'error', 'ບໍລິສັດຂົນສົ່ງທີ່ເລືອກບໍ່ຖືກຕ້ອງ');
+      return res.redirect('/orders/checkout');
+    }
+
+    // ຖ້າຂົນສົ່ງທີ່ເລືອກ ບໍ່ຮັບເກັບເງິນປາຍທາງ -> ບັງຄັບຕ້ອງແນບຫລັກຖານການໂອນເງິນ
+    let paymentProofUrl = null;
+    if (!shippingCompany.supports_cod) {
+      if (!req.file) {
+        setFlash(req, 'error', `${shippingCompany.name} ບໍ່ຮັບເກັບເງິນປາຍທາງ ກະລຸນາສະແກນ QR ຈ່າຍເງິນ ແລະ ແນບຫລັກຖານກ່ອນສັ່ງຊື້`);
+        return res.redirect('/orders/checkout');
+      }
+      paymentProofUrl = await uploadFile(req.file, 'payment-proof');
+    }
+    const finalPaymentMethod = shippingCompany.supports_cod ? (payment_method || 'cod') : 'bank_transfer';
+
+    const { data: cart } = await supabase.from('carts').select('*').eq('user_id', userId).maybeSingle();
+    if (!cart) {
+      setFlash(req, 'error', 'ກະຕ່າຂອງທ່ານຍັງວ່າງ ບໍ່ສາມາດສັ່ງຊື້ໄດ້');
+      return res.redirect('/cart');
+    }
     const { data: items } = await supabase
       .from('cart_items').select('*, products(*), product_variants(*)').eq('cart_id', cart.id);
 
@@ -57,7 +106,9 @@ router.post('/checkout', async (req, res) => {
       user_id: userId,
       subtotal, shipping_fee: shippingFee, total,
       shipping_address: { receiver_name, phone, province, district, village, detail },
-      payment_method,
+      shipping_company_id,
+      payment_proof_url: paymentProofUrl,
+      payment_method: finalPaymentMethod,
       note
     }).select().single();
     if (orderError) throw orderError;
@@ -87,20 +138,21 @@ router.post('/checkout', async (req, res) => {
     res.redirect(`/orders/${order.id}/success`);
   } catch (err) {
     console.error('checkout error:', err.message);
-    setFlash(req, 'error', 'ສັ່ງຊື້ບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່ພາຍຫລັງ');
+    setFlash(req, 'error', err.message || 'ສັ່ງຊື້ບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່ພາຍຫລັງ');
     res.redirect('/orders/checkout');
   }
 });
 
 router.get('/:id/success', async (req, res) => {
-  const { data: order } = await supabase.from('orders').select('*, order_items(*)').eq('id', req.params.id).single();
+  const { data: order } = await supabase
+    .from('orders').select('*, order_items(*), shipping_companies(name)').eq('id', req.params.id).single();
   res.render('order-success', { title: 'ສັ່ງຊື້ສຳເລັດ', order });
 });
 
 // ---- ລາຍລະອຽດອໍເດີ (ລູກຄ້າກົດເບິ່ງຈາກປະຫວັດການສັ່ງຊື້) ----
 router.get('/:id', async (req, res) => {
   const { data: order } = await supabase
-    .from('orders').select('*, order_items(*)').eq('id', req.params.id).single();
+    .from('orders').select('*, order_items(*), shipping_companies(name)').eq('id', req.params.id).single();
 
   if (!order || order.user_id !== req.session.user.id) {
     setFlash(req, 'error', 'ບໍ່ພົບອໍເດີນີ້ ຫລື ທ່ານບໍ່ມີສິດເບິ່ງ');
